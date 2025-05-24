@@ -5,16 +5,18 @@ function love.load()
 	x_pos = 1024/2
 	y_pos = 576/2
 	rot = 0
-	r = rot * math.pi / 180
 	x_sp = 0
 	y_sp = 0
 	bolt_cd = 0
 	math.randomseed(os.time())
 	objects = {}
+	to_remove = nil
 end
 
 function love.draw()
-	quad = love.graphics.rectangle("fill", 5, 5, hp*2, 20)
+	love.graphics.clear(0, 0, 0) --Очищаем BG (чтобы пропадали удаленные объекты)
+	quad = love.graphics.rectangle("fill", 5, 5, hp*2, 20) --Рисуем ХП
+	--Отрисовка объектов
 	for i = 1, #objects do
 		if objects[i] ~= nil then 
 			if objects[i][1] == 1 then
@@ -27,9 +29,11 @@ function love.draw()
 end
 
 function love.update(dt)
+	--База
+	r = rot * math.pi / 180
 	if bolt_cd < 1 then
 		table.insert(objects, {1, math.random(0, 1024-16), math.random(25, 576-16)})
-		bolt_cd = 5
+		bolt_cd = 10
 		print(bolt_cd)
 	else
 		bolt_cd = bolt_cd - 3*dt
@@ -41,20 +45,43 @@ function love.update(dt)
 	x_pos = x_pos + x_sp*dt
 	y_pos = y_pos + y_sp*dt
 	
+	--Логика движения
 	if love.keyboard.isDown("right") then
 		x_sp = x_sp + 1
+		rot = 90
 	elseif love.keyboard.isDown("left") then
 		x_sp = x_sp - 1
+		rot = 270
 	elseif love.keyboard.isDown("up") then
 		y_sp = y_sp - 1
+		rot = 0
 	elseif love.keyboard.isDown("down") then
 		y_sp = y_sp + 1
+		rot = 180
+	elseif love.keyboard.isDown("space") then
+		if x_sp > 0 then
+			x_sp = x_sp - 1
+		else
+			x_sp = x_sp + 1
+		end
+		if y_sp > 0 then
+			y_sp = y_sp - 1
+		else
+			y_sp = y_sp + 1
+		end
 	end
 	
+	--Проверка коллизий
+	print(to_remove)
+	if to_remove ~= nil then
+		table.remove(objects, to_remove)
+		to_remove = nil
+	end
 	for i = 1, #objects do
+		
 		if objects[i][1] == 1 then
-			if objects[i][2] <= x_pos+24 and objects[i][2] >= x_pos-24 and objects[i][3] <= x_pos-24 and objects[i][3] >= x_pos+24 then
-				table.remove(objects, i)
+			if objects[i][2] <= x_pos+24 and objects[i][2] >= x_pos-24 and objects[i][3] >= y_pos-24 and objects[i][3] <= y_pos+24 then
+				to_remove = i
 				hp = hp + 20
 			end
 		end
