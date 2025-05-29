@@ -22,7 +22,7 @@ function love.draw()
 			if objects[i][1] == 1 then
 				tex = bolt_tex
 			end
-			love.graphics.draw(tex, objects[i][2], objects[i][3])
+			love.graphics.draw(tex, objects[i][2], objects[i][3], 0, 1, 1, 8, 8)
 		end
 	end
 	ship = love.graphics.draw(ship_tex, x_pos, y_pos, r, 1, 1, 16, 16)
@@ -34,10 +34,10 @@ function love.update(dt)
 	if bolt_cd < 1 then
 		table.insert(objects, {1, math.random(0, 1024-16), math.random(25, 576-16)})
 		bolt_cd = 10
-		print(bolt_cd)
+		--print(bolt_cd)
 	else
 		bolt_cd = bolt_cd - 3*dt
-		print(bolt_cd)
+		--print(bolt_cd)
 	end	
 	if hp > 0 then
 		hp = hp-5*dt
@@ -59,20 +59,51 @@ function love.update(dt)
 		y_sp = y_sp + 1
 		rot = 180
 	elseif love.keyboard.isDown("space") then
-		if x_sp > 0 then
-			x_sp = x_sp - 1
-		else
-			x_sp = x_sp + 1
-		end
-		if y_sp > 0 then
-			y_sp = y_sp - 1
-		else
-			y_sp = y_sp + 1
+		if x_sp > 0 and y_sp > 0 then --Вправо вниз
+			if x_sp > y_sp then
+				koef = y_sp/x_sp
+				x_sp = x_sp - 2
+				y_sp = y_sp - 2*koef
+			else
+				koef = x_sp/y_sp
+				x_sp = x_sp - 2*koef
+				y_sp = y_sp - 2
+			end
+		elseif x_sp > 0 and y_sp < 0 then --Вправо вверх
+			if x_sp > y_sp*(-1) then
+				koef = (y_sp/x_sp)*(-1)
+				x_sp = x_sp - 2
+				y_sp = y_sp + 2*koef
+			else
+				koef = (x_sp/y_sp)*(-1)
+				x_sp = x_sp - 2*koef
+				y_sp = y_sp + 2
+			end
+		elseif x_sp < 0 and y_sp < 0 then --Влево вверх
+			if x_sp < y_sp then
+				koef = y_sp/x_sp
+				x_sp = x_sp + 2
+				y_sp = y_sp + 2*koef
+			else
+				koef = (x_sp/y_sp)*(-1)
+				x_sp = x_sp + 2*koef
+				y_sp = y_sp + 2
+			end
+		elseif x_sp < 0 and y_sp > 0 then --Влево вниз
+			if x_sp < y_sp*(-1) then
+				koef = (y_sp/x_sp)*(-1)
+				x_sp = x_sp + 2
+				y_sp = y_sp - 2*koef
+			else
+				koef = (x_sp/y_sp)*(-1)
+				x_sp = x_sp + 2*koef
+				y_sp = y_sp - 2
+			end
 		end
 	end
 	
 	--Проверка коллизий
-	print(to_remove)
+	--print(to_remove)
 	if to_remove ~= nil then
 		table.remove(objects, to_remove)
 		to_remove = nil
