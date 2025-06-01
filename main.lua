@@ -1,9 +1,13 @@
 function love.load()
-	game_state = 0
+	game_state = -1
 	hp = 200
+	sec = 0
+	dts = 0
+	sav
 	bolt_tex = love.graphics.newImage("res/bolt.png")
 	ship_tex = love.graphics.newImage("res/ship.png")
 	ast_tex1 = love.graphics.newImage("res/asteroid01.png")
+	font = love.graphics.newFont("res/Determination.otf")
 	x_pos = 1024/2
 	y_pos = 576/2
 	rot = 0
@@ -20,6 +24,14 @@ end
 
 function love.draw()
 	love.graphics.clear(0, 0, 0) --Очищаем BG (чтобы пропадали удаленные объекты)
+	if game_state == -1 then
+		love.graphics.setColor(1, 1, 1 )
+		love.graphics.print("Arrows to move", font, 1024/2-45, 576/2+30)
+		love.graphics.print("Space to brake", font, 1024/2-45, 576/2+50)
+		love.graphics.print("Collect bolts", font, 1024/2-45, 576/2+70)
+		love.graphics.print("Avoid asteroids", font, 1024/2-50, 576/2+90)
+		love.graphics.print("Press Space to start", font, 1024/2-60, 576/2+110)
+	end
 	--Отрисовка объектов
 	for i = 1, #bolts do
 		if bolts[i] ~= nil then
@@ -34,11 +46,19 @@ function love.draw()
 		end
 	end
 	hp_bar = love.graphics.rectangle("fill", 5, 5, hp*2, 20) --Рисуем ХП
+	tmc = love.graphics.print(sec.."sec", font, 5, 30, 0, 1, 1)
 	ship = love.graphics.draw(ship_tex, x_pos, y_pos, r, 1, 1, 16, 16)
+	if game_state == 1 then
+		love.graphics.print("Game over", font, 1024/2-20, 576/2)
+		love.graphics.print("Your record is "..sec, font, 1024/2-40, 576/2+30)
+		love.graphics.print("Your BEST record is "..sav, font, 1024/2-40, 576/2+50)
+		
+	end
 end
 
 function love.update(dt)
-	--База
+	if game_state == 0 then
+		--База
 	r = rot * math.pi / 180
 	if bolt_cd < 1 then
 		table.insert(bolts, {math.random(0, 1024-16), math.random(33, 576-16)})
@@ -61,7 +81,7 @@ function love.update(dt)
 			table.insert(asteroids, {-40, math.random(0, 576), math.random(0, 10), math.random(-5, 5), 4})
 		end
 		ast_cd = 5
-		print("Сторона: ".. storona)
+		--print("Сторона: ".. storona)
 	else
 		ast_cd = ast_cd - 3*dt
 		--print(bolt_cd)
@@ -69,9 +89,18 @@ function love.update(dt)
 	
 	if hp > 0 then
 		hp = hp-5*dt
+	else
+		game_state = 1
 	end
 	x_pos = x_pos + x_sp*dt
 	y_pos = y_pos + y_sp*dt
+	dts = dts+dt
+	if dts > 1 then
+		--print("DTS before: ".. dts)
+		sec = sec + 1
+		dts = 0
+		--print("DTS after: ".. dts)
+	end
 	
 	for i = 1, #asteroids do --Движение астероидов
 		if asteroids[i] ~= nil then
@@ -174,6 +203,11 @@ function love.update(dt)
 			to_remove_asts = i
 			hp = hp - 40
 		end
+	end
+	elseif game_state == -1 then
+		if love.keyboard.isDown("space") then
+			game_state = 0
+		end	
 	end
 end	
 
